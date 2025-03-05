@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 
 interface InputFieldProps {
   id: string;
-  label: string;
+  label: React.ReactNode; // Changed from string to ReactNode to allow JSX elements
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;

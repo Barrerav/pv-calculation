@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -23,7 +22,7 @@ import {
 
 // Opciones para el tipo de cabezas
 const headsTypeOptions = [
-  { value: '', label: 'Seleccione...' },
+  { value: 'select', label: 'Seleccione...' },
   { value: 'hemispherical', label: 'Hemispherical' },
   { value: 'ellipsoidal', label: 'Ellipsoidal (2:1)' },
   { value: 'torispherical', label: 'Torispherical' }
@@ -31,7 +30,7 @@ const headsTypeOptions = [
 
 const Index = () => {
   // Estados para los campos del formulario principal
-  const [headsType, setHeadsType] = useState('');
+  const [headsType, setHeadsType] = useState('select');
   const [pressure, setPressure] = useState('');
   const [diameter, setDiameter] = useState('');
   const [stressValue, setStressValue] = useState('');
@@ -198,7 +197,7 @@ const Index = () => {
 
   // Reset all
   const handleReset = () => {
-    setHeadsType('');
+    setHeadsType('select');
     setPressure('');
     setDiameter('');
     setStressValue('');

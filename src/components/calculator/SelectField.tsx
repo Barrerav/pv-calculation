@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface SelectFieldProps {
   id: string;
-  label: string;
+  label: React.ReactNode; // Changed from string to ReactNode to allow JSX elements
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
