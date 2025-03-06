@@ -6,7 +6,7 @@ interface ButtonProps {
   type?: 'button' | 'submit' | 'reset';
   onClick?: () => void;
   children: React.ReactNode;
-  variant?: 'primary' | 'danger';
+  variant?: 'primary' | 'danger' | 'secondary';
   className?: string;
 }
 
@@ -17,7 +17,18 @@ const Button = ({
   variant = 'primary',
   className = '' 
 }: ButtonProps) => {
-  const baseClass = variant === 'primary' ? 'btn-primary' : 'btn-danger';
+  let baseClass = 'btn-primary';
+  
+  switch(variant) {
+    case 'danger':
+      baseClass = 'btn-danger';
+      break;
+    case 'secondary':
+      baseClass = 'btn-secondary';
+      break;
+    default:
+      baseClass = 'btn-primary';
+  }
   
   return (
     <motion.button

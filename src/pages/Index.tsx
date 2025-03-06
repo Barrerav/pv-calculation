@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { Calculator, HelpCircle } from 'lucide-react';
+import { Calculator, HelpCircle, FileText } from 'lucide-react';
 
 import SelectField from '@/components/calculator/SelectField';
 import InputField from '@/components/calculator/InputField';
@@ -19,17 +20,18 @@ import {
   calculateWeights,
   type WeightResults
 } from '@/services/asmeCalculator';
+import { exportToPdf } from '@/services/pdfExporter';
 
-// Opciones para el tipo de cabezas
+// Options for heads type
 const headsTypeOptions = [
-  { value: 'select', label: 'Seleccione...' },
+  { value: 'select', label: 'Select...' },
   { value: 'hemispherical', label: 'Hemispherical' },
   { value: 'ellipsoidal', label: 'Ellipsoidal (2:1)' },
   { value: 'torispherical', label: 'Torispherical' }
 ];
 
 const Index = () => {
-  // Estados para los campos del formulario principal
+  // States for main form fields
   const [headsType, setHeadsType] = useState('select');
   const [pressure, setPressure] = useState('');
   const [diameter, setDiameter] = useState('');
@@ -37,12 +39,12 @@ const Index = () => {
   const [efficiency, setEfficiency] = useState('');
   const [corrosionAllowance, setCorrosionAllowance] = useState('');
 
-  // Estados para resultados de espesor
+  // States for thickness results
   const [showThicknessResults, setShowThicknessResults] = useState(false);
-  const [reqShellThk, setReqShellThk] = useState('0,00');
-  const [reqHeadsThk, setReqHeadsThk] = useState('0,00');
+  const [reqShellThk, setReqShellThk] = useState('0.00');
+  const [reqHeadsThk, setReqHeadsThk] = useState('0.00');
 
-  // Estados para segundo formulario
+  // States for second form
   const [showNominalForm, setShowNominalForm] = useState(false);
   const [shellNominalThk, setShellNominalThk] = useState('');
   const [headsNominalThk, setHeadsNominalThk] = useState('');
@@ -51,12 +53,12 @@ const Index = () => {
   const [operationFluidHeight, setOperationFluidHeight] = useState('');
   const [operationFluidDensity, setOperationFluidDensity] = useState('1000');
 
-  // Estados para resultados MAWP/MAP
+  // States for MAWP/MAP results
   const [showMawpResults, setShowMawpResults] = useState(false);
-  const [mawpValue, setMawpValue] = useState('0,00');
-  const [mapValue, setMapValue] = useState('0,00');
+  const [mawpValue, setMawpValue] = useState('0.00');
+  const [mapValue, setMapValue] = useState('0.00');
 
-  // Estados para resultados de peso
+  // States for weight results
   const [showWeightResults, setShowWeightResults] = useState(false);
   const [weightResults, setWeightResults] = useState<{
     volumeShell: string;
@@ -68,54 +70,54 @@ const Index = () => {
     weightOperation: string;
     weightTest: string;
   }>({
-    volumeShell: '0,00',
-    weightShell: '0,00',
-    volumeHeads: '0,00',
-    weightHeads: '0,00',
-    weightOpFluid: '0,00',
-    weightEmpty: '0,00',
-    weightOperation: '0,00',
-    weightTest: '0,00'
+    volumeShell: '0.00',
+    weightShell: '0.00',
+    volumeHeads: '0.00',
+    weightHeads: '0.00',
+    weightOpFluid: '0.00',
+    weightEmpty: '0.00',
+    weightOperation: '0.00',
+    weightTest: '0.00'
   });
 
-  // Funciones para calcular espesores
+  // Functions to calculate thicknesses
   const handleCalculateThickness = (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       const pBarg = parseFloat(pressure);
-      const P = pBarg * 0.1; // Convertir barg a MPa
+      const P = pBarg * 0.1; // Convert barg to MPa
       const D = parseFloat(diameter);
       const S = parseFloat(stressValue);
       const E = parseFloat(efficiency);
       const CA = parseFloat(corrosionAllowance);
 
-      // Cálculos
+      // Calculations
       const reqShell = calculateRequiredShellThickness(P, D, S, E, CA);
       const reqHeads = calculateRequiredHeadsThickness(headsType, P, D, S, E, CA);
 
-      // Actualizamos estados
+      // Update states
       setReqShellThk(formatNumber(reqShell));
       setReqHeadsThk(formatNumber(reqHeads));
       setShowThicknessResults(true);
       setShowNominalForm(true);
 
-      // Valores sugeridos para los espesores nominales
+      // Suggested values for nominal thicknesses
       setShellNominalThk(Math.ceil(reqShell).toString());
       setHeadsNominalThk(Math.ceil(reqHeads).toString());
 
-      toast.success('Cálculo completado con éxito');
+      toast.success('Calculation completed successfully');
     } catch (error) {
       console.error(error);
-      toast.error('Error en el cálculo. Revise los datos ingresados.');
+      toast.error('Error in calculation. Please check your input data.');
     }
   };
 
-  // Calcular MAWP/MAP
+  // Calculate MAWP/MAP
   const handleCalculateMAWP = () => {
     try {
       if (!shellNominalThk || !headsNominalThk) {
-        toast.error('Ingrese los espesores nominales');
+        toast.error('Please enter nominal thicknesses');
         return;
       }
 
@@ -127,7 +129,7 @@ const Index = () => {
       const CA = parseFloat(corrosionAllowance);
 
       if (shellNomThk <= 0 || headsNomThk <= 0) {
-        toast.error('Los espesores nominales deben ser mayores a cero');
+        toast.error('Nominal thicknesses must be greater than zero');
         return;
       }
 
@@ -137,18 +139,18 @@ const Index = () => {
       setMapValue(formatNumber(MAP));
       setShowMawpResults(true);
       
-      toast.success('MAWP/MAP calculado con éxito');
+      toast.success('MAWP/MAP calculated successfully');
     } catch (error) {
       console.error(error);
-      toast.error('Error en el cálculo de MAWP/MAP');
+      toast.error('Error in MAWP/MAP calculation');
     }
   };
 
-  // Calcular pesos
+  // Calculate weights
   const handleCalculateWeights = () => {
     try {
       if (!shellNominalThk || !headsNominalThk || !cylinderHeight || !operationFluidHeight) {
-        toast.error('Complete todos los campos requeridos');
+        toast.error('Please complete all required fields');
         return;
       }
 
@@ -161,7 +163,7 @@ const Index = () => {
       const opFluidDens = parseFloat(operationFluidDensity);
 
       if (shellNomThk <= 0 || headsNomThk <= 0) {
-        toast.error('Los espesores nominales deben ser mayores a cero');
+        toast.error('Nominal thicknesses must be greater than zero');
         return;
       }
 
@@ -188,10 +190,39 @@ const Index = () => {
       });
       
       setShowWeightResults(true);
-      toast.success('Pesos calculados con éxito');
+      toast.success('Weights calculated successfully');
     } catch (error) {
       console.error(error);
-      toast.error('Error en el cálculo de pesos');
+      toast.error('Error in weight calculation');
+    }
+  };
+
+  // Generate PDF report
+  const handleGeneratePdf = () => {
+    try {
+      exportToPdf({
+        headsType,
+        pressure,
+        diameter,
+        stressValue,
+        efficiency,
+        corrosionAllowance,
+        reqShellThk,
+        reqHeadsThk,
+        shellNominalThk,
+        headsNominalThk,
+        cylinderHeight,
+        materialDensity,
+        operationFluidHeight,
+        operationFluidDensity,
+        mawpValue,
+        mapValue,
+        weightResults
+      });
+      toast.success('PDF report generated successfully');
+    } catch (error) {
+      console.error(error);
+      toast.error('Error generating PDF report');
     }
   };
 
@@ -215,10 +246,10 @@ const Index = () => {
     setShowMawpResults(false);
     setShowWeightResults(false);
     
-    toast.info('Formulario reiniciado');
+    toast.info('Form reset');
   };
 
-  // Para mostrar tooltips con información
+  // For showing tooltips with information
   const InfoTooltip = ({ text }: { text: string }) => (
     <TooltipProvider>
       <Tooltip>
@@ -249,15 +280,15 @@ const Index = () => {
               transition={{ delay: 0.3, duration: 0.5 }}
             >
               <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-asme-blue to-asme-teal">
-                Calculadora ASME Sec. VIII Div.1
+                ASME Sec. VIII Div.1 Calculator
               </h1>
               <p className="text-asme-green text-sm font-medium">
-                Por Vicente Barrera
+                By Vicente Barrera
               </p>
             </motion.div>
           </div>
 
-          {/* === FORMULARIO PRINCIPAL === */}
+          {/* === MAIN FORM === */}
           <form onSubmit={handleCalculateThickness} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -275,7 +306,7 @@ const Index = () => {
                   label="Design Pressure (P)"
                   value={pressure}
                   onChange={(e) => setPressure(e.target.value)}
-                  placeholder="Ej: 10"
+                  placeholder="Ex: 10"
                   required
                   unit="barg"
                 />
@@ -285,7 +316,7 @@ const Index = () => {
                   label="Internal Diameter (D)"
                   value={diameter}
                   onChange={(e) => setDiameter(e.target.value)}
-                  placeholder="Ej: 1000"
+                  placeholder="Ex: 1000"
                   required
                   unit="mm"
                 />
@@ -297,12 +328,12 @@ const Index = () => {
                   label={
                     <div className="flex items-center">
                       Stress Value (S)
-                      <InfoTooltip text="Valor de tensión del material según ASME Sec II D" />
+                      <InfoTooltip text="Material stress value according to ASME Sec II D" />
                     </div>
                   }
                   value={stressValue}
                   onChange={(e) => setStressValue(e.target.value)}
-                  placeholder="Ej: 137.9"
+                  placeholder="Ex: 137.9"
                   required
                   unit="MPa"
                 />
@@ -312,12 +343,12 @@ const Index = () => {
                   label={
                     <div className="flex items-center">
                       Joint Efficiency (E)
-                      <InfoTooltip text="Factor de eficiencia de junta, 0.7 a 1.0" />
+                      <InfoTooltip text="Joint efficiency factor, 0.7 to 1.0" />
                     </div>
                   }
                   value={efficiency}
                   onChange={(e) => setEfficiency(e.target.value)}
-                  placeholder="Ej: 0.85"
+                  placeholder="Ex: 0.85"
                   min={0}
                   max={1}
                   required
@@ -328,7 +359,7 @@ const Index = () => {
                   label="Corrosion Allowance"
                   value={corrosionAllowance}
                   onChange={(e) => setCorrosionAllowance(e.target.value)}
-                  placeholder="Ej: 3"
+                  placeholder="Ex: 3"
                   min={0}
                   required
                   unit="mm"
@@ -337,12 +368,12 @@ const Index = () => {
             </div>
             
             <Button type="submit" className="mt-6">
-              Calcular Espesores Requeridos
+              Calculate Required Thicknesses
             </Button>
           </form>
 
-          {/* === RESULTADOS DE ESPESOR === */}
-          <ResultBox visible={showThicknessResults} title="Espesores Requeridos">
+          {/* === THICKNESS RESULTS === */}
+          <ResultBox visible={showThicknessResults} title="Required Thicknesses">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ValueDisplay 
                 label="Shell Required Thickness" 
@@ -359,7 +390,7 @@ const Index = () => {
             </div>
           </ResultBox>
 
-          {/* === FORM CON ESPESORES NOMINALES === */}
+          {/* === FORM WITH NOMINAL THICKNESSES === */}
           {showNominalForm && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -368,27 +399,27 @@ const Index = () => {
               className="mt-8 pt-6 border-t border-gray-200"
             >
               <h2 className="text-xl font-semibold text-asme-blue mb-4">
-                Espesores Nominales y Cálculo de Pesos
+                Nominal Thicknesses and Weight Calculation
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <InputField
                     id="shellNominalThk"
-                    label="Espesor Nominal Shell (incl. corrosión)"
+                    label="Shell Nominal Thickness (incl. corrosion)"
                     value={shellNominalThk}
                     onChange={(e) => setShellNominalThk(e.target.value)}
-                    placeholder="Ej: 10"
+                    placeholder="Ex: 10"
                     required
                     unit="mm"
                   />
                   
                   <InputField
                     id="headsNominalThk"
-                    label="Espesor Nominal Heads (incl. corrosión)"
+                    label="Heads Nominal Thickness (incl. corrosion)"
                     value={headsNominalThk}
                     onChange={(e) => setHeadsNominalThk(e.target.value)}
-                    placeholder="Ej: 12"
+                    placeholder="Ex: 12"
                     required
                     unit="mm"
                   />
@@ -398,7 +429,7 @@ const Index = () => {
                     label="Cylinder Height"
                     value={cylinderHeight}
                     onChange={(e) => setCylinderHeight(e.target.value)}
-                    placeholder="Ej: 3000"
+                    placeholder="Ex: 3000"
                     required
                     unit="mm"
                   />
@@ -410,7 +441,7 @@ const Index = () => {
                     label="Material Density"
                     value={materialDensity}
                     onChange={(e) => setMaterialDensity(e.target.value)}
-                    placeholder="Ej: 7850"
+                    placeholder="Ex: 7850"
                     required
                     unit="kg/m³"
                   />
@@ -420,7 +451,7 @@ const Index = () => {
                     label="Operation Fluid Height"
                     value={operationFluidHeight}
                     onChange={(e) => setOperationFluidHeight(e.target.value)}
-                    placeholder="Ej: 2500"
+                    placeholder="Ex: 2500"
                     required
                     unit="mm"
                   />
@@ -430,7 +461,7 @@ const Index = () => {
                     label="Operation Fluid Density"
                     value={operationFluidDensity}
                     onChange={(e) => setOperationFluidDensity(e.target.value)}
-                    placeholder="Ej: 1000"
+                    placeholder="Ex: 1000"
                     required
                     unit="kg/m³"
                   />
@@ -439,16 +470,16 @@ const Index = () => {
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                 <Button onClick={handleCalculateMAWP}>
-                  Calcular MAWP / MAP
+                  Calculate MAWP / MAP
                 </Button>
                 <Button onClick={handleCalculateWeights}>
-                  Calcular Pesos
+                  Calculate Weights
                 </Button>
               </div>
             </motion.div>
           )}
 
-          {/* === RESULTADOS MAWP === */}
+          {/* === MAWP RESULTS === */}
           <ResultBox visible={showMawpResults}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <ValueDisplay 
@@ -465,17 +496,26 @@ const Index = () => {
             </div>
           </ResultBox>
 
-          {/* === RESULTADOS DE PESO === */}
+          {/* === WEIGHT RESULTS === */}
           <WeightResult 
             visible={showWeightResults}
             results={weightResults}
           />
 
-          {/* === BOTÓN RESET === */}
+          {/* === RESET AND PDF BUTTONS === */}
           {(showThicknessResults || showNominalForm) && (
-            <div className="mt-6">
+            <div className="mt-6 flex gap-4 justify-between">
               <Button onClick={handleReset} variant="danger">
                 Reset
+              </Button>
+              
+              <Button 
+                onClick={handleGeneratePdf} 
+                variant="secondary" 
+                className="flex items-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                Export PDF Report
               </Button>
             </div>
           )}

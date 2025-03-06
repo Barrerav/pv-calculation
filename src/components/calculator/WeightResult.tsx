@@ -50,17 +50,17 @@ const WeightResult = ({ visible, results }: WeightResultProps) => {
       transition={{ duration: 0.5 }}
       className="weight-result-box my-6"
     >
-      <h3 className="text-xl font-medium text-asme-blue mb-4">Resultados de Pesos</h3>
+      <h3 className="text-xl font-medium text-asme-blue mb-4">Weight Results</h3>
       
       <div className="space-y-1">
-        <WeightResultItem index={0} label="Volumen Shell" value={results.volumeShell} unit="m³" />
-        <WeightResultItem index={1} label="Peso Shell" value={results.weightShell} unit="kg" />
-        <WeightResultItem index={2} label="Volumen Heads" value={results.volumeHeads} unit="m³" />
-        <WeightResultItem index={3} label="Peso Heads" value={results.weightHeads} unit="kg" />
-        <WeightResultItem index={4} label="Peso Fluido Operación" value={results.weightOpFluid} unit="kg" />
-        <WeightResultItem index={5} label="Peso Total Vacío" value={results.weightEmpty} unit="kg" highlight={true} />
-        <WeightResultItem index={6} label="Peso Total Operación" value={results.weightOperation} unit="kg" highlight={true} />
-        <WeightResultItem index={7} label="Peso Total Prueba (lleno agua)" value={results.weightTest} unit="kg" highlight={true} />
+        <WeightResultItem index={0} label="Shell Volume" value={results.volumeShell} unit="m³" />
+        <WeightResultItem index={1} label="Shell Weight" value={results.weightShell} unit="kg" />
+        <WeightResultItem index={2} label="Heads Volume" value={results.volumeHeads} unit="m³" />
+        <WeightResultItem index={3} label="Heads Weight" value={results.weightHeads} unit="kg" />
+        <WeightResultItem index={4} label="Operation Fluid Weight" value={results.weightOpFluid} unit="kg" />
+        <WeightResultItem index={5} label="Total Empty Weight" value={results.weightEmpty} unit="kg" highlight={true} />
+        <WeightResultItem index={6} label="Total Operation Weight" value={results.weightOperation} unit="kg" highlight={true} />
+        <WeightResultItem index={7} label="Total Test Weight (water filled)" value={results.weightTest} unit="kg" highlight={true} />
       </div>
     </motion.div>
   );
