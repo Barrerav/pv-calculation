@@ -1,5 +1,9 @@
 
 import jsPDF from 'jspdf';
+import { 
+  getShellThicknessCalculationSteps, 
+  getHeadsThicknessCalculationSteps
+} from './asme';
 
 interface PdfData {
   // Form data
@@ -98,23 +102,28 @@ export const exportToPdf = (data: PdfData) => {
   doc.setFontSize(10);
   doc.setTextColor(70, 70, 70);
   
+  // Calculate the exact values for the report
+  const shellCalculations = getShellThicknessCalculationSteps(P * 0.1, D, S, E, CA);
+  const headsCalculations = getHeadsThicknessCalculationSteps(data.headsType, P * 0.1, D, S, E, CA);
+  
   // Shell thickness calculation with formulas
   doc.text('Shell Required Thickness:', 20, y); y += 6;
   doc.text('For circumferential stress:', 25, y); y += 6;
   doc.text(`t₁ = (P × R) / (S × E - 0.6 × P) + CA per UG-27(c)(1)`, 30, y); y += 6;
-  doc.text(`t₁ = (${P.toFixed(2)} × ${R.toFixed(2)}) / (${S.toFixed(2)} × ${E.toFixed(2)} - 0.6 × ${P.toFixed(2)}) + ${CA.toFixed(2)}`, 30, y); y += 6;
+  doc.text(`t₁ = (${(P * 0.1).toFixed(2)} × ${R.toFixed(2)}) / (${S.toFixed(2)} × ${E.toFixed(2)} - 0.6 × ${(P * 0.1).toFixed(2)}) + ${CA.toFixed(2)}`, 30, y); y += 6;
   
-  const t1 = (P * R) / (S * E - 0.6 * P);
-  doc.text(`t₁ = ${t1.toFixed(2)} + ${CA.toFixed(2)} = ${(t1 + CA).toFixed(2)} mm`, 30, y); y += 8;
+  // Using the calculated values now
+  doc.text(`t₁ = ${shellCalculations.t1.toFixed(2)} + ${CA.toFixed(2)} = ${(shellCalculations.t1 + CA).toFixed(2)} mm`, 30, y); y += 8;
   
   doc.text('For longitudinal stress:', 25, y); y += 6;
   doc.text(`t₂ = (P × R) / (2 × S × E + 0.4 × P) + CA per UG-27(c)(2)`, 30, y); y += 6;
-  doc.text(`t₂ = (${P.toFixed(2)} × ${R.toFixed(2)}) / (2 × ${S.toFixed(2)} × ${E.toFixed(2)} + 0.4 × ${P.toFixed(2)}) + ${CA.toFixed(2)}`, 30, y); y += 6;
+  doc.text(`t₂ = (${(P * 0.1).toFixed(2)} × ${R.toFixed(2)}) / (2 × ${S.toFixed(2)} × ${E.toFixed(2)} + 0.4 × ${(P * 0.1).toFixed(2)}) + ${CA.toFixed(2)}`, 30, y); y += 6;
   
-  const t2 = (P * R) / (2 * S * E + 0.4 * P);
-  doc.text(`t₂ = ${t2.toFixed(2)} + ${CA.toFixed(2)} = ${(t2 + CA).toFixed(2)} mm`, 30, y); y += 8;
+  doc.text(`t₂ = ${shellCalculations.t2.toFixed(2)} + ${CA.toFixed(2)} = ${(shellCalculations.t2 + CA).toFixed(2)} mm`, 30, y); y += 8;
   
-  doc.text(`Required Shell Thickness = max(t₁, t₂) = ${data.reqShellThk} mm`, 25, y); y += 10;
+  // Format the final thickness result with comma as decimal separator
+  const formattedShellThk = data.reqShellThk.replace(',', '.');
+  doc.text(`Required Shell Thickness = max(t₁, t₂) = ${shellCalculations.maxT.toFixed(2)} + ${CA.toFixed(2)} = ${formattedShellThk} mm`, 25, y); y += 10;
   
   // Heads thickness calculation with formulas
   doc.text('Heads Required Thickness:', 20, y); y += 6;
@@ -122,27 +131,26 @@ export const exportToPdf = (data: PdfData) => {
   if (data.headsType === 'hemispherical') {
     doc.text('For hemispherical heads:', 25, y); y += 6;
     doc.text(`t = (P × R) / (2 × S × E - 0.2 × P) + CA`, 30, y); y += 6;
-    doc.text(`t = (${P.toFixed(2)} × ${R.toFixed(2)}) / (2 × ${S.toFixed(2)} × ${E.toFixed(2)} - 0.2 × ${P.toFixed(2)}) + ${CA.toFixed(2)}`, 30, y); y += 6;
+    doc.text(`t = (${(P * 0.1).toFixed(2)} × ${R.toFixed(2)}) / (2 × ${S.toFixed(2)} × ${E.toFixed(2)} - 0.2 × ${(P * 0.1).toFixed(2)}) + ${CA.toFixed(2)}`, 30, y); y += 6;
     
-    const tHeads = (P * R) / (2 * S * E - 0.2 * P);
-    doc.text(`t = ${tHeads.toFixed(2)} + ${CA.toFixed(2)} = ${(tHeads + CA).toFixed(2)} mm`, 30, y); y += 6;
+    doc.text(`t = ${headsCalculations.baseT.toFixed(2)} + ${CA.toFixed(2)} = ${headsCalculations.finalT.toFixed(2)} mm`, 30, y); y += 6;
   } else if (data.headsType === 'ellipsoidal') {
     doc.text('For ellipsoidal heads (2:1):', 25, y); y += 6;
     doc.text(`t = (P × D) / (2 × S × E - 0.2 × P) + CA`, 30, y); y += 6;
-    doc.text(`t = (${P.toFixed(2)} × ${D.toFixed(2)}) / (2 × ${S.toFixed(2)} × ${E.toFixed(2)} - 0.2 × ${P.toFixed(2)}) + ${CA.toFixed(2)}`, 30, y); y += 6;
+    doc.text(`t = (${(P * 0.1).toFixed(2)} × ${D.toFixed(2)}) / (2 × ${S.toFixed(2)} × ${E.toFixed(2)} - 0.2 × ${(P * 0.1).toFixed(2)}) + ${CA.toFixed(2)}`, 30, y); y += 6;
     
-    const tHeads = (P * D) / (2 * S * E - 0.2 * P);
-    doc.text(`t = ${tHeads.toFixed(2)} + ${CA.toFixed(2)} = ${(tHeads + CA).toFixed(2)} mm`, 30, y); y += 6;
+    doc.text(`t = ${headsCalculations.baseT.toFixed(2)} + ${CA.toFixed(2)} = ${headsCalculations.finalT.toFixed(2)} mm`, 30, y); y += 6;
   } else if (data.headsType === 'torispherical') {
     doc.text('For torispherical heads:', 25, y); y += 6;
     doc.text(`t = (0.885 × P × D) / (S × E - 0.1 × P) + CA`, 30, y); y += 6;
-    doc.text(`t = (0.885 × ${P.toFixed(2)} × ${D.toFixed(2)}) / (${S.toFixed(2)} × ${E.toFixed(2)} - 0.1 × ${P.toFixed(2)}) + ${CA.toFixed(2)}`, 30, y); y += 6;
+    doc.text(`t = (0.885 × ${(P * 0.1).toFixed(2)} × ${D.toFixed(2)}) / (${S.toFixed(2)} × ${E.toFixed(2)} - 0.1 × ${(P * 0.1).toFixed(2)}) + ${CA.toFixed(2)}`, 30, y); y += 6;
     
-    const tHeads = (0.885 * P * D) / (S * E - 0.1 * P);
-    doc.text(`t = ${tHeads.toFixed(2)} + ${CA.toFixed(2)} = ${(tHeads + CA).toFixed(2)} mm`, 30, y); y += 6;
+    doc.text(`t = ${headsCalculations.baseT.toFixed(2)} + ${CA.toFixed(2)} = ${headsCalculations.finalT.toFixed(2)} mm`, 30, y); y += 6;
   }
   
-  doc.text(`Required Heads Thickness = ${data.reqHeadsThk} mm`, 25, y); y += 10;
+  // Format the final heads thickness with comma as decimal separator
+  const formattedHeadsThk = data.reqHeadsThk.replace(',', '.');
+  doc.text(`Required Heads Thickness = ${formattedHeadsThk} mm`, 25, y); y += 10;
   
   // Check if we need a new page
   if (y > 240) {
@@ -316,4 +324,3 @@ export const exportToPdf = (data: PdfData) => {
   // Save the PDF
   doc.save('ASME_Calculator_Report.pdf');
 };
-

@@ -17,6 +17,22 @@ export const calculateRequiredShellThickness = (
   return Math.max(t1, t2) + CA;
 };
 
+// Get detailed calculation steps for shell thickness
+export const getShellThicknessCalculationSteps = (
+  P: number, 
+  D: number, 
+  S: number, 
+  E: number, 
+  CA: number
+): { t1: number, t2: number, maxT: number, finalT: number } => {
+  const R = D/2;
+  const t1 = (P * R) / (S * E - 0.6 * P);
+  const t2 = (P * R) / (2 * S * E + 0.4 * P);
+  const maxT = Math.max(t1, t2);
+  const finalT = maxT + CA;
+  return { t1, t2, maxT, finalT };
+};
+
 // Calculate Required Heads Thickness
 export const calculateRequiredHeadsThickness = (
   headsType: string, 
@@ -43,4 +59,32 @@ export const calculateRequiredHeadsThickness = (
       break;
   }
   return reqH;
+};
+
+// Get detailed calculation steps for heads thickness
+export const getHeadsThicknessCalculationSteps = (
+  headsType: string, 
+  P: number, 
+  D: number, 
+  S: number, 
+  E: number, 
+  CA: number
+): { baseT: number, finalT: number } => {
+  let baseT = 0;
+  
+  switch(headsType){
+    case 'hemispherical':
+      const R = D/2;
+      baseT = (P * R)/(2 * S * E - 0.2 * P);
+      break;
+    case 'ellipsoidal':
+      baseT = (P * D)/(2 * S * E - 0.2 * P);
+      break;
+    case 'torispherical':
+      baseT = (0.885 * P * D)/(S * E - 0.1 * P);
+      break;
+  }
+  
+  const finalT = baseT + CA;
+  return { baseT, finalT };
 };
