@@ -19,7 +19,7 @@ import {
   calculateMAWP_MAP,
   calculateWeights,
   type WeightResults
-} from '@/services/asmeCalculator';
+} from '@/services/asme';
 import { exportToPdf } from '@/services/pdfExporter';
 
 // Options for heads type
