@@ -143,12 +143,16 @@ export const exportToPdf = (data: PdfData) => {
     doc.text(`Heads Weight: ${data.weightResults.weightHeads} kg`, 20, y); y += 6;
     doc.text(`Operation Fluid Weight: ${data.weightResults.weightOpFluid} kg`, 20, y); y += 6;
     
-    // Highlight important weights
+    // Highlight important weights - using bold text instead of setFontStyle
     doc.setTextColor(244, 58, 79); // Red
-    doc.setFontStyle('bold');
+    // Instead of setFontStyle('bold'), we'll use a font that includes bold
+    doc.setFont('helvetica', 'bold');
     doc.text(`Empty Total Weight: ${data.weightResults.weightEmpty} kg`, 20, y); y += 6;
     doc.text(`Operation Total Weight: ${data.weightResults.weightOperation} kg`, 20, y); y += 6;
     doc.text(`Test Total Weight (water filled): ${data.weightResults.weightTest} kg`, 20, y);
+    
+    // Reset to normal font
+    doc.setFont('helvetica', 'normal');
   }
   
   // Footer
