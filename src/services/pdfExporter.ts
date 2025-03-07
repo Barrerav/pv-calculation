@@ -2,7 +2,8 @@
 import jsPDF from 'jspdf';
 import { 
   getShellThicknessCalculationSteps, 
-  getHeadsThicknessCalculationSteps
+  getHeadsThicknessCalculationSteps,
+  formatNumber
 } from './asme';
 
 interface PdfData {
@@ -196,7 +197,12 @@ export const exportToPdf = (data: PdfData) => {
     doc.text(`Effective Shell Thickness = Nominal - CA = ${shellNomThk.toFixed(2)} - ${CA.toFixed(2)} = ${effShell.toFixed(2)} mm`, 25, y); y += 6;
     doc.text(`Effective Heads Thickness = Nominal - CA = ${headsNomThk.toFixed(2)} - ${CA.toFixed(2)} = ${effHeads.toFixed(2)} mm`, 25, y); y += 8;
     
-    // MAWP Shell calculations
+    // MAWP Shell calculations - Fix the formatting issue here by starting a new page if needed
+    if (y > 220) {
+      doc.addPage();
+      y = 20;
+    }
+    
     doc.text('MAWP Shell:', 25, y); y += 6;
     doc.text('For circumferential stress:', 30, y); y += 6;
     doc.text(`P₁ = (S × E × t) / (R + 0.6 × t) per UG-27(c)(1)`, 35, y); y += 6;
@@ -216,7 +222,7 @@ export const exportToPdf = (data: PdfData) => {
     doc.text(`MAWP Shell = min(P₁, P₂) = ${mawpShell.toFixed(2)} barg`, 30, y); y += 10;
     
     // Check if we need a new page
-    if (y > 240) {
+    if (y > 220) {
       doc.addPage();
       y = 20;
     }
@@ -309,10 +315,77 @@ export const exportToPdf = (data: PdfData) => {
     doc.setFont('helvetica', 'bold');
     doc.text(`Empty Total Weight = Shell + Heads = ${data.weightResults.weightShell} + ${data.weightResults.weightHeads} = ${data.weightResults.weightEmpty} kg`, 20, y); y += 6;
     doc.text(`Operation Total Weight = Empty + Fluid = ${data.weightResults.weightEmpty} + ${data.weightResults.weightOpFluid} = ${data.weightResults.weightOperation} kg`, 20, y); y += 6;
-    doc.text(`Test Total Weight (water filled) = ${data.weightResults.weightTest} kg`, 20, y);
+    doc.text(`Test Total Weight (water filled) = ${data.weightResults.weightTest} kg`, 20, y); y += 15;
     
     // Reset to normal font
     doc.setFont('helvetica', 'normal');
+  }
+  
+  // Add summary table at the end
+  if (data.reqShellThk && data.mawpValue) {
+    // Check if we need a new page
+    if (y > 200) {
+      doc.addPage();
+      y = 20;
+    }
+    
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Summary Table', 15, y);
+    y += 10;
+    
+    // Create table headers
+    const tableX = 15;
+    const colWidth = [100, 70]; // Width for each column
+    
+    doc.setFillColor(230, 230, 230);
+    doc.rect(tableX, y, colWidth[0] + colWidth[1], 8, 'F');
+    
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'bold');
+    
+    doc.text('Parameter', tableX + 5, y + 5.5);
+    doc.text('Value', tableX + colWidth[0] + 5, y + 5.5);
+    
+    y += 8;
+    
+    // Table rows data
+    const drawRow = (label: string, value: string) => {
+      doc.setFont('helvetica', 'normal');
+      doc.text(label, tableX + 5, y + 5.5);
+      doc.text(value, tableX + colWidth[0] + 5, y + 5.5);
+      
+      // Draw cell borders
+      doc.setDrawColor(200, 200, 200);
+      doc.line(tableX, y, tableX + colWidth[0] + colWidth[1], y); // Top border
+      doc.line(tableX, y + 8, tableX + colWidth[0] + colWidth[1], y + 8); // Bottom border
+      doc.line(tableX, y, tableX, y + 8); // Left border
+      doc.line(tableX + colWidth[0], y, tableX + colWidth[0], y + 8); // Middle vertical
+      doc.line(tableX + colWidth[0] + colWidth[1], y, tableX + colWidth[0] + colWidth[1], y + 8); // Right border
+      
+      y += 8;
+    };
+    
+    // Add rows with data
+    drawRow('Required Shell Thickness', `${data.reqShellThk} mm`);
+    drawRow('Required Heads Thickness', `${data.reqHeadsThk} mm`);
+    
+    if (data.shellNominalThk) {
+      drawRow('Nominal Shell Thickness', `${data.shellNominalThk} mm`);
+      drawRow('Nominal Heads Thickness', `${data.headsNominalThk} mm`);
+    }
+    
+    if (data.mawpValue) {
+      drawRow('MAWP', `${data.mawpValue} barg`);
+      drawRow('MAP', `${data.mapValue} barg`);
+    }
+    
+    if (data.weightResults && data.weightResults.weightEmpty) {
+      drawRow('Empty Weight', `${data.weightResults.weightEmpty} kg`);
+      drawRow('Operation Weight', `${data.weightResults.weightOperation} kg`);
+      drawRow('Test Weight', `${data.weightResults.weightTest} kg`);
+    }
   }
   
   // Footer
@@ -324,3 +397,4 @@ export const exportToPdf = (data: PdfData) => {
   // Save the PDF
   doc.save('ASME_Calculator_Report.pdf');
 };
+
